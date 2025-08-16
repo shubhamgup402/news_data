@@ -6,6 +6,7 @@ from langdetect import detect
 from googletrans import Translator
 import csv
 from urllib.parse import urljoin, urlparse, urlunparse
+import os
 
 translator = Translator()
 
@@ -113,7 +114,19 @@ def fetch_news_for_date(stock_name, date, headers, extra_keywords=None):
 
     return articles
 
-def scrape_news(stock_name, start_date, end_date=None, extra_keywords=None):
+def save_to_csv(news_list, filename="news_results.csv"):
+    """Append daily results into CSV"""
+    file_exists = os.path.isfile(filename)
+
+    with open(filename, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["date", "title", "summary", "url"])
+        if not file_exists:  # Write header only once
+            writer.writeheader()
+        writer.writerows(news_list)
+
+    print(f"  Saved {len(news_list)} articles to {filename}")
+
+def scrape_news_day_by_day(stock_name, start_date, end_date=None, extra_keywords=None):
     headers = {
         'User-Agent': random.choice([
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
@@ -122,7 +135,6 @@ def scrape_news(stock_name, start_date, end_date=None, extra_keywords=None):
         ])
     }
 
-    all_news = []
     current_date = start_date
     if not end_date:
         end_date = datetime.today()
@@ -130,21 +142,17 @@ def scrape_news(stock_name, start_date, end_date=None, extra_keywords=None):
     print(f"\n Fetching news for '{stock_name}' from {start_date.strftime('%d %b %Y')} to {end_date.strftime('%d %b %Y')}...\n")
 
     while current_date <= end_date:
-        print(f" {current_date.strftime('%d %b %Y')}")
+        print(f" {current_date.strftime('%d %b %Y')}...")
         day_articles = fetch_news_for_date(stock_name, current_date, headers, extra_keywords)
-        all_news.extend(day_articles)
+
+        # Deduplicate same-day by title
+        unique_news = {item['title']: item for item in day_articles}.values()
+
+        if unique_news:
+            save_to_csv(unique_news)
+
         current_date += timedelta(days=1)
 
-    # Deduplicate by title
-    unique_news = {item['title']: item for item in all_news}.values()
-    return list(unique_news)
-
-def save_to_csv(news_list, filename="news_results.csv"):
-    with open(filename, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["date", "title", "summary", "url"])
-        writer.writeheader()
-        writer.writerows(news_list)
-    print(f"\n Saved {len(news_list)} articles to {filename}")
 
 # ========== MAIN ==========
 if __name__ == "__main__":
@@ -159,7 +167,4 @@ if __name__ == "__main__":
         print(" Invalid date format.")
         exit()
 
-    news_data = scrape_news(stock_name, start_date, end_date)
-
-    print(f"\n Found {len(news_data)} relevant English news articles for '{stock_name}'.\n")
-    save_to_csv(news_data)
+    scrape_news_day_by_day(stock_name, start_date, end_date)
