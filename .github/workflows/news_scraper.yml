@@ -28,7 +28,7 @@ jobs:
           python news_scraper.py <<EOF
           Reliance
           01-11-2016
-          31-12-2016
+          18-08-2025
           EOF
 
       - name: Upload results
