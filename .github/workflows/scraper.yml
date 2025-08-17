@@ -24,7 +24,7 @@ jobs:
 
       - name: Run scraper
         run: |
-          python your_script.py <<EOF
+          python news_scraper_final.py <<EOF
           Reliance
           01-08-2025
           05-08-2025
