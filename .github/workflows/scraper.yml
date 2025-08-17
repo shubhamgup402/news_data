@@ -1,9 +1,7 @@
 name: Financial News Scraper
 
 on:
-  workflow_dispatch:   # allow manual trigger
-  schedule:
-    - cron: "0 3 * * 1"   # every Monday at 03:00 UTC = 08:30 IST
+  workflow_dispatch:   # allow manual trigger   # every Monday at 03:00 UTC = 08:30 IST
 
 jobs:
   scrape:
