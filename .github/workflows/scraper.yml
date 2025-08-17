@@ -31,5 +31,5 @@ jobs:
       - name: Upload scraped CSV
         uses: actions/upload-artifact@v4
         with:
-          name: news_results_reliance
-          path: news_results_reliance.csv
+          name: news_results
+          path: news_results.csv
